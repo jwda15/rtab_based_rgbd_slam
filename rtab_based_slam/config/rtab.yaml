@@ -1,0 +1,17 @@
+# rtabmap 쪽 설정 (rgbd_odometry + rtabmap). launch 가 읽어서 노드 인자로 넘긴다.
+# 입력 영상 토픽은 param.yaml 맨 위에 있다.
+# 그 밖의 rtabmap 고정 설정(Mem/STMSize, NeighborLinkRefining 등)은 launch 의 RTAB_ARGS 에 있음.
+
+# ===== 특징점 =====
+# gftt : GFTT 검출 + ORB 기술자 (rtabmap 8). 저텍스처 바닥에서 점이 많이 나온다. 회전 불변 아님
+# sift : SIFT (rtabmap 1). 회전 불변 — 반대 방향 재방문 루프를 잡는다
+vo_feature: gftt       # rgbd_odometry (프레임 간 VO)
+loop_feature: sift     # rtabmap 루프 검출 (BoW 사전) + 루프 검증
+sift_contrast: 0.005   # SIFT/ContrastThreshold. 0.04(원기본)면 저텍스처에서 특징점이 굶는다
+sift_edge: 10          # SIFT/EdgeThreshold
+
+# ===== 키프레임 / 루프 =====
+detection_rate: 2.0    # rtabmap 키프레임 처리 주기 [Hz]. 0(무제한) 금지 — slam_node 가 /info 를 놓친다
+linear_update: 0.02    # 이만큼 안 움직이면 키프레임을 안 만든다 [m]
+angular_update: 0.02   # [rad]
+loop_thr: 0.05         # 루프 검출 임계 (Rtabmap/LoopThr). 낮을수록 많이 잡는다

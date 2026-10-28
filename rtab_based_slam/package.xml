@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>rgbd_slam</name>
+  <version>0.2.0</version>
+  <description>RGB-D SLAM — DR(휠+자이로) + rtabmap VO·루프 링크를 GTSAM 팩터그래프로 융합</description>
+  <maintainer email="jwda15@users.noreply.github.com">jwda15</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>nav_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>eigen</depend>
+  <depend>gtsam</depend>
+  <depend>rtabmap_msgs</depend>
+
+  <!-- 실행 시 함께 띄우는 노드 (launch) -->
+  <exec_depend>rtabmap_odom</exec_depend>
+  <exec_depend>rtabmap_slam</exec_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>   <!-- launch 가 config/rtab.yaml 을 읽는다 -->
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>rviz2</exec_depend>          <!-- launch rviz:=true -->
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

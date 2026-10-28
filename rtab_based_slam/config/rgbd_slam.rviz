@@ -1,0 +1,77 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 20
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz_default_plugins/Axes
+      Name: 시작점
+      Enabled: true
+      Length: 0.3
+      Radius: 0.02
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz_default_plugins/Odometry
+      Name: Fused 현재 포즈 (/fused_odom)
+      Enabled: true
+      Topic:
+        Value: /fused_odom
+        Depth: 10
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Keep: 3000
+      Position Tolerance: 0.02
+      Angle Tolerance: 0.1
+      Covariance:
+        Value: false
+      Shape:
+        Value: Arrow
+        Color: 0; 160; 255
+        Shaft Length: 0.08
+        Shaft Radius: 0.008
+        Head Length: 0.03
+        Head Radius: 0.02
+      Value: true
+    - Class: rviz_default_plugins/Path
+      Name: Fused 전체 궤적 (/fused_path, 루프 최적화 때 갱신)
+      Enabled: true
+      Topic:
+        Value: /fused_path
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+      Color: 255; 60; 60
+      Line Style: Lines
+      Line Width: 0.03
+      Value: true
+  Global Options:
+    Fixed Frame: map
+    Background Color: 40; 40; 40
+    Frame Rate: 30
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Name: Current View
+      Distance: 8
+      Pitch: 0.9
+      Yaw: 3.9
+      Focal Point:
+        X: 1.5
+        Y: 0
+        Z: 0
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz)
+Window Geometry:
+  Height: 900
+  Width: 1400

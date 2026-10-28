@@ -1,0 +1,66 @@
+# rgbd_slam slam_node 파라미터 — 실무에서 고치는 값은 여기서만 고친다.
+# 장착마다 바뀌는 cam_rpy_deg / lever_arm 은 따로 mount 파일로 덮어쓸 수 있다
+# (launch mount:=<파일>, 예시는 config/mount_examples/).
+# 좌표계: 차체 FRD (x 전방, y 우측, z 하방). 글로벌 = 시작 시점 차체 자세.
+#
+# ★ 실수 값(각도·길이·시간)은 정수라도 소수점을 붙일 것 (45 가 아니라 45.0).
+#   ROS 2 는 타입을 엄격하게 보기 때문에, [0, -45, 0] 처럼 쓰면 정수 배열로 읽어 slam_node 가 시작하자마자 죽는다.
+
+slam_node:
+  ros__parameters:
+    # ===== 0. 입력 토픽 (전부 여기서만 바꾼다 — 영상 토픽은 launch 가 읽어 rgbd_odometry·rtabmap 에도 넘긴다) =====
+    imu_topic: /gv7/imu/data                                        # sensor_msgs/Imu (자이로, 100 Hz 가정)
+    wheel_odom_topic: /j100_0548/platform/odom                      # nav_msgs/Odometry (전진속도 twist.linear.x)
+    rgb_topic: /camera/camera/color/image_raw                       # sensor_msgs/Image
+    depth_topic: /camera/camera/aligned_depth_to_color/image_raw    # 컬러에 정렬된 depth (mount_calib 도 씀)
+    camera_info_topic: /camera/camera/color/camera_info
+
+    # ===== 1. 차체 <-> 카메라 상대변환 =====
+    cam_rpy_deg: [0.0, -45.0, 0.0]     # 카메라 마운트 roll, pitch, yaw [deg] (항공 ZYX). 하방 틸트 = pitch 음수
+    lever_arm: [0.333, 0.0, -0.270]    # 차체원점 -> 카메라 광학원점 [m]. 위쪽 마운트 = z 음수
+    base_height: 0.0635                # 차체원점의 지면 높이 [m] (mount_calib 이 lever z 를 구할 때만 씀)
+
+    # ===== 2. 입력 / 출력 좌표계 =====
+    enu_input: true                    # 입력 자이로·휠이 ENU/FLU(ROS 관례)면 true, FRD 면 false
+    enu_output: true                   # 출력 토픽을 ENU/FLU 로 낼지 (false = FRD)
+
+    # ===== 3. 초반 자동 측정 (시작 후 premeasure_sec 정지하면 재고, 그 전에 움직이면 사전값) =====
+    gyro_bias_calib: false             # 자이로 바이어스를 정지 평균으로
+    mount_calib: false                 # 바닥 단일 평면으로 cam roll·pitch·lever z (x, y, yaw 는 위 사전값)
+    premeasure_sec: 5.0                # 필요한 정지 시간 [s]
+    premeasure_max_v: 0.01             # 정지 판정 휠 속도 [m/s]
+    premeasure_max_w_deg: 1.0          # 정지 판정 각속도 [deg/s] (바이어스 빼기 전)
+    mount_inlier_min: 0.90             # 프레임마다 평면 인라이어 비율 하한 — 하나라도 미달이면 단일 평면 아님
+    mount_inlier_thr: 0.01             # 평면 거리 임계 [m]
+    mount_max_dev_deg: 5.0             # 사전값과 roll·pitch 차이 허용 [deg] (0 = 검사 안 함)
+    mount_max_dev_z: 0.03              # 사전값과 lever z 차이 허용 [m] (0 = 검사 안 함)
+    gyro_bias: [0.000902, 0.000990, 0.000332]   # 자이로 바이어스 사전값 [rad/s], FRD (GV7 정지 1800 s 실측)
+
+    # ===== 4. 팩터별 노이즈 (시그마) — [roll, pitch, yaw (deg), x, y, z (m)] =====
+    noise_prior: [0.5, 0.5, 0.5, 0.02, 0.02, 0.02]      # 1번 노드 고정
+    noise_odometry: [0.2, 0.2, 0.3, 0.01, 0.01, 0.02]   # DR (차체축 기준, 노드 간격당)
+    noise_vo: [3.0, 3.0, 3.0, 0.05, 0.05, 0.05]         # rtabmap 이웃링크
+    noise_loop: [5.0, 5.0, 5.0, 0.15, 0.15, 0.15]       # rtabmap 루프
+
+    # ===== 5. 팩터 on/off (DR 은 그래프의 뼈대라 항상 켜져 있다) =====
+    use_vo: true                       # VO 엣지 (rtabmap 이웃링크)
+    use_loops: true                    # 루프 (rtabmap BoW 루프)
+
+    # ===== 6. 루프 잔차 게이트: 현재 추정과 이보다 어긋난 루프는 버린다 =====
+    #   허용 = loop_max_error + loop_err_per_m × 두 노드 사이 경로 + loop_err_per_m_lost × 그 사이 VO 공백 거리
+    loop_max_error: 0.15               # [m], 0 이면 게이트 끔
+    loop_err_per_m: 0.05
+    loop_err_per_m_lost: 0.10
+    loop_max_rot_deg: 15.0             # 회전 잔차 허용 [deg], 0 이면 끔
+    loop_robust: true                  # 루프 팩터 Huber
+    loop_huber_k: 1.345
+    loop_min_node_gap: 0               # 루프 양끝 노드 간격 하한 (0 = 끔)
+    loop_min_id_gap: 0                 # 루프 양끝 rtabmap 키프레임 id 간격 하한 (0 = 끔)
+
+    # ===== 7. 그래프 / 입력 처리 =====
+    graph_idx: 10                      # 노드 주기 [IMU 틱] (IMU 100 Hz -> 노드 10 Hz)
+    kf_max_dt: 0.35                    # rtabmap 키프레임 시각 <-> 노드 시각 허용 [s]
+    wheel_timeout: 1.0                 # 휠 무수신이 이보다 길면 v = 0 [s]
+    max_imu_gap: 0.5                   # 이보다 긴 IMU 공백은 적분 안 함 [s]
+    map_frame: map
+    base_frame: base_link

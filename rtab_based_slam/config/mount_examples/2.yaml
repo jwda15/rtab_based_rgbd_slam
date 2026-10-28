@@ -1,0 +1,5 @@
+# 장착값 예시 2 — param.yaml 의 cam_rpy_deg / lever_arm 을 덮어쓴다 (launch mount:=<이 파일>).
+slam_node:
+  ros__parameters:
+    cam_rpy_deg: [-0.57, -45.05, 0.0]
+    lever_arm: [0.333, 0.0, -0.2699]
